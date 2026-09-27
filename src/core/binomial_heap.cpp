@@ -6,7 +6,8 @@
 BinomialHeap::BinomialHeap()
     : head_(nullptr),
       min_(nullptr),
-      size_(0) {
+      size_(0),
+      swap_count_(0) {
 }
 
 BinomialHeap::~BinomialHeap() {
@@ -96,6 +97,55 @@ void BinomialHeap::link(BinomialNode* child, BinomialNode* parent) {
     parent->degree++;
 }
 
+BinomialNode* BinomialHeap::merge_root_lists(
+    BinomialNode* first,
+    BinomialNode* second
+) {
+    if (first == nullptr) {
+        return second;
+    }
+
+    if (second == nullptr) {
+        return first;
+    }
+
+    BinomialNode* merged_head = nullptr;
+    BinomialNode* merged_tail = nullptr;
+
+    if (first->degree <= second->degree) {
+        merged_head = first;
+        first = first->sibling;
+    } else {
+        merged_head = second;
+        second = second->sibling;
+    }
+
+    merged_tail = merged_head;
+
+    while (first != nullptr &&
+           second != nullptr) {
+
+        if (first->degree <= second->degree) {
+            merged_tail->sibling = first;
+            first = first->sibling;
+        } else {
+            merged_tail->sibling = second;
+            second = second->sibling;
+        }
+
+        merged_tail =
+            merged_tail->sibling;
+    }
+
+    if (first != nullptr) {
+        merged_tail->sibling = first;
+    } else {
+        merged_tail->sibling = second;
+    }
+
+    return merged_head;
+}
+
 void BinomialHeap::consolidate() {
     if (head_ == nullptr) {
         return;
@@ -179,17 +229,11 @@ int BinomialHeap::extract_min() {
         child = next;
     }
 
-    // Unir la lista de hijos con la lista actual de raices.
-    if (reversed_children != nullptr) {
-        BinomialNode* last_child = reversed_children;
-
-        while (last_child->sibling != nullptr) {
-            last_child = last_child->sibling;
-        }
-
-        last_child->sibling = head_;
-        head_ = reversed_children;
-    }
+   
+    head_ = merge_root_lists(
+        head_,
+        reversed_children
+    );
 
     int minimum_vertex = minimum->vertex;
 
@@ -268,13 +312,15 @@ void BinomialHeap::decrease_key(int vertex, double new_key) {
     BinomialNode* parent = current->parent;
 
     while (parent != nullptr &&
-           current->key < parent->key) {
+        current->key < parent->key) {
 
         std::swap(current->key, parent->key);
         std::swap(current->vertex, parent->vertex);
 
         node_by_vertex_[current->vertex] = current;
         node_by_vertex_[parent->vertex] = parent;
+
+        swap_count_++;
 
         current = parent;
         parent = current->parent;
@@ -290,4 +336,8 @@ bool BinomialHeap::contains(int vertex) const {
     }
 
     return node_by_vertex_[vertex] != nullptr;
+}
+
+long long BinomialHeap::swap_count() const {
+    return swap_count_;
 }

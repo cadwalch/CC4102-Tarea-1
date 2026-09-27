@@ -2,12 +2,21 @@
 bin/
 *.o
 *.out
+/test_graph
 
-# Datasets generados
-datasets/
+# Datos y resultados generados
+datasets/*
+!datasets/README.md
 
-# Resultados temporales
-results/raw/
+results/raw/*
+!results/raw/README.md
+
+results/plots/*
+!results/plots/README.md
+
+# Python
+__pycache__/
+*.py[cod]
 
 # Editor
 .vscode/

@@ -81,6 +81,21 @@ public:
      */
     bool contains(int vertex) const;
 
+    /**
+     * @brief Retorna la cantidad acumulada de intercambios realizados
+     * durante operaciones decrease_key.
+     *
+     * @return Cantidad de intercambios realizados.
+     */
+    long long swap_count() const;
+
+
+    BinomialHeap(const BinomialHeap&) = delete;
+
+    BinomialHeap& operator=(
+        const BinomialHeap&
+    ) = delete;
+
 private:
     BinomialNode* head_;
     BinomialNode* min_;
@@ -118,6 +133,20 @@ private:
      * @param node Raiz del arbol o subarbol a liberar.
      */
     void delete_tree(BinomialNode* node);
+
+    long long swap_count_;
+
+    /**
+     * @brief Fusiona dos listas de raices ordenadas por grado.
+     *
+     * @param first Primera lista de raices.
+     * @param second Segunda lista de raices.
+     * @return Inicio de la lista fusionada.
+     */
+    BinomialNode* merge_root_lists(
+        BinomialNode* first,
+        BinomialNode* second
+    );
 };
 
 #endif // BINOMIAL_HEAP_HPP
