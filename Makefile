@@ -6,7 +6,8 @@ BIN_DIR = bin
 CORE_SOURCES = \
 	src/core/graph.cpp \
 	src/core/graph_generator.cpp \
-	src/core/binomial_heap.cpp
+	src/core/binomial_heap.cpp \
+	src/core/prim.cpp
 
 TEST_SOURCE = src/programs/test_small_graph.cpp
 

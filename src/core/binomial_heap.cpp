@@ -282,3 +282,12 @@ void BinomialHeap::decrease_key(int vertex, double new_key) {
 
     update_min();
 }
+
+bool BinomialHeap::contains(int vertex) const {
+    if (vertex < 0 ||
+        vertex >= static_cast<int>(node_by_vertex_.size())) {
+        return false;
+    }
+
+    return node_by_vertex_[vertex] != nullptr;
+}

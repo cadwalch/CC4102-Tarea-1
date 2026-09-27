@@ -1,8 +1,10 @@
 #include "binomial_heap.hpp"
 #include "graph.hpp"
 #include "graph_generator.hpp"
+#include "prim.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <queue>
@@ -137,7 +139,9 @@ void test_binomial_multiple_sizes() {
         for (int expected_vertex = n - 1;
              expected_vertex >= 0;
              --expected_vertex) {
+
             int extracted = heap.extract_min();
+
             assert(extracted == expected_vertex);
         }
 
@@ -277,7 +281,6 @@ void test_binomial_random_operations() {
     BinomialHeap heap;
     heap.build(keys);
 
-    // Ejecutar muchas operaciones decrease_key aleatorias.
     for (int operation = 0;
          operation < decrease_operations;
          ++operation) {
@@ -293,8 +296,6 @@ void test_binomial_random_operations() {
 
     std::vector<bool> extracted(vertex_count, false);
 
-    // Comparar cada extract_min con una implementacion
-    // de referencia basada en busqueda lineal.
     for (int operation = 0;
          operation < vertex_count;
          ++operation) {
@@ -330,16 +331,66 @@ void test_binomial_random_operations() {
         << std::endl;
 }
 
+void test_prim_binomial_small_graph() {
+    Graph graph(6);
+
+    graph.add_edge(0, 1, 4.0);
+    graph.add_edge(0, 2, 3.0);
+    graph.add_edge(1, 2, 1.0);
+    graph.add_edge(1, 3, 2.0);
+    graph.add_edge(2, 3, 4.0);
+    graph.add_edge(2, 4, 5.0);
+    graph.add_edge(3, 4, 2.0);
+    graph.add_edge(3, 5, 3.0);
+    graph.add_edge(4, 5, 1.0);
+
+    PrimResult result = prim_binomial(graph, 0);
+
+    const double expected_weight = 9.0;
+    const double epsilon = 1e-9;
+
+    assert(
+        std::abs(
+            result.total_weight - expected_weight
+        ) < epsilon
+    );
+
+    assert(result.parent.size() == 6);
+    assert(result.cost.size() == 6);
+
+    assert(result.parent[0] == -1);
+    assert(std::abs(result.cost[0]) < epsilon);
+
+    int mst_edges = 0;
+
+    for (int vertex = 0; vertex < 6; ++vertex) {
+        if (result.parent[vertex] != -1) {
+            mst_edges++;
+        }
+    }
+
+    assert(mst_edges == 5);
+
+    std::cout
+        << "Prim binomial small graph: OK"
+        << std::endl;
+}
+
 } // namespace
 
 int main() {
-    std::cout << "=== Graph tests ===" << std::endl;
+    std::cout
+        << "=== Graph tests ==="
+        << std::endl;
 
     test_graph_generator();
     test_graph_generator_large();
 
     std::cout << std::endl;
-    std::cout << "=== Binomial heap tests ===" << std::endl;
+
+    std::cout
+        << "=== Binomial heap tests ==="
+        << std::endl;
 
     test_binomial_extract_min();
     test_binomial_multiple_sizes();
@@ -350,6 +401,15 @@ int main() {
     test_binomial_random_operations();
 
     std::cout << std::endl;
+
+    std::cout
+        << "=== Prim tests ==="
+        << std::endl;
+
+    test_prim_binomial_small_graph();
+
+    std::cout << std::endl;
+
     std::cout
         << "Todos los tests pasaron correctamente."
         << std::endl;

@@ -73,6 +73,14 @@ public:
      */
     bool empty() const;
 
+    /**
+     * @brief Indica si un vertice se encuentra actualmente en la cola.
+     *
+     * @param vertex Vertice que se quiere consultar.
+     * @return true si el vertice esta en la cola, false en caso contrario.
+     */
+    bool contains(int vertex) const;
+
 private:
     BinomialNode* head_;
     BinomialNode* min_;
