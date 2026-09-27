@@ -1,27 +1,55 @@
 #include "graph_generator.hpp"
 
+#include <algorithm>
 #include <random>
 #include <stdexcept>
-#include <unordered_set>
 
 namespace {
 
-long long edge_id(int u, int v, int n) {
-    if (u > v) {
-        int temp = u;
-        u = v;
-        v = temp;
+/**
+ * @brief Indica si ya existe la arista no dirigida (u, v).
+ *
+ * Se revisa la lista de adyacencia del vertice de menor grado
+ * para reducir el numero esperado de comparaciones.
+ */
+bool edge_exists(
+    const Graph& graph,
+    int u,
+    int v
+) {
+    const auto& neighbors_u =
+        graph.neighbors(u);
+
+    const auto& neighbors_v =
+        graph.neighbors(v);
+
+    if (neighbors_u.size() <= neighbors_v.size()) {
+        for (const Edge& edge : neighbors_u) {
+            if (edge.to == v) {
+                return true;
+            }
+        }
+    } else {
+        for (const Edge& edge : neighbors_v) {
+            if (edge.to == u) {
+                return true;
+            }
+        }
     }
 
-    return static_cast<long long>(u) * n + v;
+    return false;
 }
 
-double generate_weight(std::mt19937& generator) {
-    std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
+/**
+ * @brief Genera un peso aleatorio en (0, 1].
+ */
+double random_weight(
+    std::mt19937& generator,
+    std::uniform_real_distribution<double>& distribution
+) {
     double weight = 0.0;
 
-    while (weight == 0.0) {
+    while (weight <= 0.0) {
         weight = distribution(generator);
     }
 
@@ -32,69 +60,108 @@ double generate_weight(std::mt19937& generator) {
 
 namespace GraphGenerator {
 
-Graph generate_connected_graph(int n, int m, unsigned int seed) {
-    if (n <= 0) {
+Graph generate_connected_graph(
+    int vertex_count,
+    int edge_count,
+    unsigned int seed
+) {
+    if (vertex_count <= 0) {
         throw std::invalid_argument(
-            "La cantidad de vertices debe ser mayor que 0"
+            "El numero de vertices debe ser positivo"
         );
     }
 
-    long long max_edges =
-        static_cast<long long>(n) * (n - 1) / 2;
+    long long maximum_edges =
+        static_cast<long long>(vertex_count) *
+        static_cast<long long>(vertex_count - 1) /
+        2;
 
-    if (m < n - 1) {
+    if (edge_count < vertex_count - 1) {
         throw std::invalid_argument(
-            "Un grafo conexo necesita al menos n - 1 aristas"
+            "No hay suficientes aristas para "
+            "generar un grafo conexo"
         );
     }
 
-    if (m > max_edges) {
+    if (static_cast<long long>(edge_count) >
+        maximum_edges) {
+
         throw std::invalid_argument(
-            "La cantidad de aristas excede el maximo de un grafo simple"
+            "Demasiadas aristas para un grafo simple"
         );
     }
 
-    Graph graph(n);
+    Graph graph(vertex_count);
 
     std::mt19937 generator(seed);
 
-    std::unordered_set<long long> existing_edges;
-    existing_edges.reserve(static_cast<std::size_t>(m) * 2);
+    std::uniform_real_distribution<double>
+        weight_distribution(0.0, 1.0);
 
-    // Construir primero un arbol cobertor para garantizar conectividad.
-    for (int vertex = 1; vertex < n; ++vertex) {
-        std::uniform_int_distribution<int> parent_distribution(
-            0, vertex - 1
+    /*
+     * Primero construimos un arbol generador.
+     *
+     * Para cada vertice v > 0 elegimos un padre
+     * aleatorio entre [0, v - 1].
+     *
+     * Esto garantiza conectividad y no puede producir
+     * aristas duplicadas dentro del arbol.
+     */
+    for (int vertex = 1;
+         vertex < vertex_count;
+         ++vertex) {
+
+        std::uniform_int_distribution<int>
+            parent_distribution(
+                0,
+                vertex - 1
+            );
+
+        int parent =
+            parent_distribution(generator);
+
+        graph.add_edge(
+            vertex,
+            parent,
+            random_weight(
+                generator,
+                weight_distribution
+            )
         );
-
-        int parent = parent_distribution(generator);
-        double weight = generate_weight(generator);
-
-        graph.add_edge(vertex, parent, weight);
-        existing_edges.insert(edge_id(vertex, parent, n));
     }
 
-    // Agregar las aristas restantes evitando repeticiones y loops.
-    std::uniform_int_distribution<int> vertex_distribution(0, n - 1);
+    /*
+     * Luego agregamos las aristas restantes.
+     */
+    std::uniform_int_distribution<int>
+        vertex_distribution(
+            0,
+            vertex_count - 1
+        );
 
-    while (graph.edge_count() < m) {
-        int u = vertex_distribution(generator);
-        int v = vertex_distribution(generator);
+    while (graph.edge_count() < edge_count) {
+        int u =
+            vertex_distribution(generator);
+
+        int v =
+            vertex_distribution(generator);
 
         if (u == v) {
             continue;
         }
 
-        long long id = edge_id(u, v, n);
-
-        if (existing_edges.find(id) != existing_edges.end()) {
+        if (edge_exists(graph, u, v)) {
             continue;
         }
 
-        double weight = generate_weight(generator);
-
-        graph.add_edge(u, v, weight);
-        existing_edges.insert(id);
+        graph.add_edge(
+            u,
+            v,
+            random_weight(
+                generator,
+                weight_distribution
+            )
+        );
     }
 
     return graph;

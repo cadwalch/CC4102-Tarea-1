@@ -6,34 +6,69 @@
 #include <vector>
 
 /**
- * @brief Resultado de ejecutar el algoritmo de Prim.
+ * @brief Medicion acumulada despues de una llamada a decrease_key.
+ *
+ * El numero de llamada no se almacena explicitamente:
+ * la muestra en la posicion i corresponde a la llamada i + 1.
  */
-struct PrimResult {
+struct DecreaseKeySample {
     /**
-     * parent[v] corresponde al padre del vertice v en el MST.
-     * La raiz tiene padre -1.
+     * @brief Tiempo acumulado en decrease_key, en nanosegundos.
      */
-    std::vector<int> parent;
+    long long cumulative_time_ns;
 
     /**
-     * cost[v] corresponde al peso de la arista que conecta v
-     * con su padre en el MST.
+     * @brief Operaciones estructurales acumuladas.
+     *
+     * Binomial: intercambios.
+     * Fibonacci: cortes en cascada.
      */
-    std::vector<double> cost;
-
-    /**
-     * Suma de los pesos de las aristas del MST.
-     */
-    double total_weight;
+    long long structural_operations;
 };
 
 /**
- * @brief Ejecuta el algoritmo de Prim utilizando una cola binomial.
- *
- * @param graph Grafo conexo, no dirigido y ponderado.
- * @param root Vertice utilizado como raiz del MST.
- * @return Resultado del algoritmo de Prim.
+ * @brief Resultado de una ejecucion del algoritmo de Prim.
  */
-PrimResult prim_binomial(const Graph& graph, int root);
+struct PrimResult {
+    std::vector<int> parent;
+    std::vector<double> cost;
+
+    double total_weight;
+
+    long long decrease_key_calls;
+    long long decrease_key_time_ns;
+
+    long long structural_operations;
+
+    std::vector<DecreaseKeySample> decrease_key_samples;
+};
+
+/**
+ * @brief Ejecuta Prim usando una cola binomial.
+ *
+ * @param graph Grafo conexo no dirigido.
+ * @param root Vertice raiz.
+ * @param collect_samples Indica si se almacenan muestras
+ *        para el experimento amortizado.
+ */
+PrimResult prim_binomial(
+    const Graph& graph,
+    int root,
+    bool collect_samples = false
+);
+
+/**
+ * @brief Ejecuta Prim usando una cola de Fibonacci.
+ *
+ * @param graph Grafo conexo no dirigido.
+ * @param root Vertice raiz.
+ * @param collect_samples Indica si se almacenan muestras
+ *        para el experimento amortizado.
+ */
+PrimResult prim_fibonacci(
+    const Graph& graph,
+    int root,
+    bool collect_samples = false
+);
 
 #endif // PRIM_HPP

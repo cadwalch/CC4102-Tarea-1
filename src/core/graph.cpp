@@ -4,13 +4,15 @@
 
 Graph::Graph(int vertex_count)
     : vertex_count_(vertex_count),
-      edge_count_(0),
-      adjacency_(vertex_count) {
+      edge_count_(0) {
+
     if (vertex_count < 0) {
         throw std::invalid_argument(
-            "La cantidad de vertices no puede ser negativa"
+            "El numero de vertices no puede ser negativo"
         );
     }
+
+    adjacency_.resize(vertex_count);
 }
 
 void Graph::add_edge(int u, int v, double weight) {
