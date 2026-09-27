@@ -1,0 +1,17 @@
+# Compilados
+bin/
+*.o
+*.out
+
+# Datasets generados
+datasets/
+
+# Resultados temporales
+results/raw/
+
+# Editor
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
