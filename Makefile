@@ -3,26 +3,27 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude
 
 BIN_DIR = bin
 
-GRAPH_SOURCES = \
+CORE_SOURCES = \
 	src/core/graph.cpp \
-	src/core/graph_generator.cpp
+	src/core/graph_generator.cpp \
+	src/core/binomial_heap.cpp
 
-TEST_GRAPH_SOURCE = src/programs/test_small_graph.cpp
+TEST_SOURCE = src/programs/test_small_graph.cpp
 
-TEST_GRAPH = $(BIN_DIR)/test_graph
+TEST_BIN = $(BIN_DIR)/test_graph
 
-.PHONY: all clean test
+.PHONY: all test clean
 
-all: $(TEST_GRAPH)
+all: $(TEST_BIN)
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-$(TEST_GRAPH): $(GRAPH_SOURCES) $(TEST_GRAPH_SOURCE) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(GRAPH_SOURCES) $(TEST_GRAPH_SOURCE) -o $(TEST_GRAPH)
+$(TEST_BIN): $(CORE_SOURCES) $(TEST_SOURCE) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(CORE_SOURCES) $(TEST_SOURCE) -o $(TEST_BIN)
 
-test: $(TEST_GRAPH)
-	./$(TEST_GRAPH)
+test: $(TEST_BIN)
+	./$(TEST_BIN)
 
 clean:
 	rm -rf $(BIN_DIR)
